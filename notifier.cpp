@@ -4,11 +4,22 @@ const int SYNTH_PIN = 3;
 
 void setup() {
     Serial.begin(115200);
-    // pinMode(SYNTH_PIN, OUTPUT);
 }
 
+String inputBuffer;
+
 void loop() {
-    for(int i = 0; i < 255; i++) {
-        tone(SYNTH_PIN, i * 50, 200);
+    if(Serial.available() > 0) {
+        inputBuffer += (char)Serial.read();
     }
+
+    int endOfMessage = inputBuffer.indexOf("\r");
+    if(endOfMessage != -1) {
+        int sensorReading = inputBuffer.substring(0, endOfMessage).toInt();
+        int pitch = map(sensorReading, 0, 100, 120, 1500);
+        tone(SYNTH_PIN, pitch, 200);
+        inputBuffer = inputBuffer.substring(endOfMessage + 1);
+        delay(1);
+    }
+
 }
