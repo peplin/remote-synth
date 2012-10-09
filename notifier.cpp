@@ -63,6 +63,7 @@ void loop() {
                         grain2PhaseInc = grain2Decay = 0;
                 }
             }
+            cJSON_Delete(root);
         }
         inputBuffer = "";
     }
