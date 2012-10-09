@@ -1,0 +1,3 @@
+[submodule "arduino.mk"]
+	path = arduino.mk
+	url = git@github.com:peplin/arduino.mk.git
