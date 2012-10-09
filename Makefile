@@ -1,7 +1,7 @@
 BOARD_TAG = diecimila
 TARGET = labnotifier
 
-ARDUINO_LIBS = auduino
+ARDUINO_LIBS = auduino cJSON
 SKIP_SUFFIX_CHECK = 1
 
 SERIAL_BAUDRATE = 115200

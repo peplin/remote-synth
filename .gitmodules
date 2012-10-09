@@ -1,3 +1,6 @@
 [submodule "arduino.mk"]
 	path = arduino.mk
 	url = git@github.com:peplin/arduino.mk.git
+[submodule "libs/cJSON"]
+	path = libs/cJSON
+	url = https://github.com/openxc/cJSON

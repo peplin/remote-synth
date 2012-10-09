@@ -14,7 +14,6 @@ static uint16_t grain2PhaseAcc;
 static uint16_t grain2PhaseInc;
 static uint16_t grain2Amp;
 static uint8_t grain2Decay;
-static int i;
 
 // Map Analogue channels
 #define SYNC_CONTROL         (4)
@@ -62,6 +61,8 @@ static int i;
 #endif
 
 void audioOn();
+
+void audioOff();
 
 uint16_t mapPentatonic(uint16_t input);
 

@@ -1,15 +1,23 @@
 #include "Arduino.h"
 #include "auduino.h"
+#include "cJSON.h"
+
+String inputBuffer;
 
 void setup() {
     Serial.begin(115200);
     pinMode(PWM_PIN,OUTPUT);
-    audioOn();
+    // audioOn();
 }
 
-String inputBuffer;
-bool playing = false;
-int pitch = 0;
+void updateSynthControls(int newSyncPhaseInc, int newGrainPhaseInc,
+        int newGrainDecay, int newGrain2PhaseInc, int newGrain2Decay) {
+    syncPhaseInc = mapPhaseInc(newSyncPhaseInc) / 4;
+    grainPhaseInc  = mapPhaseInc(newGrainPhaseInc) / 2;
+    grainDecay     = newGrainDecay / 8;
+    grain2PhaseInc = mapPhaseInc(newGrain2PhaseInc) / 2;
+    grain2Decay    = newGrain2Decay / 4;
+}
 
 void loop() {
     if(Serial.available() > 0) {
@@ -18,30 +26,45 @@ void loop() {
 
     int endOfMessage = inputBuffer.indexOf("\r");
     if(endOfMessage != -1) {
-        if(inputBuffer.substring(0, 1) == " ") {
-            playing = !playing;
+        char message[endOfMessage + 1];
+        inputBuffer.substring(0, endOfMessage).toCharArray(message,
+                sizeof(message));
+        Serial.print("Chars are: ");
+        for(int i = 0; i < sizeof(message); i++) {
+            Serial.println(message[i], HEX);
         }
-        int message = inputBuffer.substring(0, endOfMessage).toInt();
-        pitch = map(message, 0, 100, 0, 1023);
-        inputBuffer = inputBuffer.substring(endOfMessage + 1);
-    }
 
-    if(playing) {
-        // Smooth frequency mapping
-        //syncPhaseInc = mapPhaseInc(analogRead(SYNC_CONTROL)) / 4;
-
-        // Stepped mapping to MIDI notes: C, Db, D, Eb, E, F...
-        //syncPhaseInc = mapMidi(analogRead(SYNC_CONTROL));
-
-        // Stepped pentatonic mapping: D, E, G, A, B
-        syncPhaseInc = mapPhaseInc(pitch) / 4;
-        grainPhaseInc  = mapPhaseInc(pitch) / 2;
-        grainDecay     = analogRead(pitch) / 8;
-        grain2PhaseInc = mapPhaseInc(pitch) / 2;
-        grain2Decay    = analogRead(pitch) / 4;
-    } else {
-        syncPhaseInc = grainPhaseInc = grainDecay =
-            grain2PhaseInc = grain2Decay = 0;
+        cJSON* root = cJSON_Parse(message);
+        Serial.println("a");
+        if(root != NULL) {
+            Serial.println("b");
+            cJSON* commandObj = cJSON_GetObjectItem(root, "command");
+            Serial.println("c");
+            if(commandObj != NULL) {
+                char* command = commandObj->valuestring;
+                if(!strcmp(command, "play")) {
+                    cJSON* options = cJSON_GetObjectItem(root, "options");
+                    if(options != NULL) {
+                        int newSyncPhaseInc = cJSON_GetArrayItem(options, 0)->valueint;
+                        Serial.println("1");
+                        int newGrainPhaseInc = cJSON_GetArrayItem(options, 1)->valueint;
+                        Serial.println("2");
+                        int newGrainDecay = cJSON_GetArrayItem(options, 2)->valueint;
+                        Serial.println("3");
+                        int newGrain2PhaseInc = cJSON_GetArrayItem(options, 3)->valueint;
+                        Serial.println("4");
+                        int newGrain2Decay = cJSON_GetArrayItem(options, 4)->valueint;
+                        Serial.println("5");
+                        updateSynthControls(newSyncPhaseInc, newGrainPhaseInc,
+                                newGrainDecay, newGrain2PhaseInc, newGrain2Decay);
+                    }
+                } else if(!strcmp(command, "stop")) {
+                    syncPhaseInc = grainPhaseInc = grainDecay =
+                        grain2PhaseInc = grain2Decay = 0;
+                }
+            }
+        }
+        inputBuffer = "";
     }
 }
 
@@ -50,7 +73,6 @@ void loop() {
 SIGNAL(PWM_INTERRUPT) {
     uint8_t value;
     uint16_t output;
-    i++;
 
     syncPhaseAcc += syncPhaseInc;
     if (syncPhaseAcc < syncPhaseInc) {
