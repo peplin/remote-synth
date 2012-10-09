@@ -14,13 +14,12 @@ def main():
     time.sleep(2)
 
     while True:
-        command = {"command": "play", "options": [randint(0, 100),
-                randint(0, 100), randint(0, 100), 20,
-            20]}
+        command = {"command": "play", "options": [randint(0, 300),
+                randint(0, 300), randint(0, 300), randint(0, 100),
+                randint(0, 100)]}
         print command
-        from pdb import set_trace; set_trace(); # TODO
         device.write(json.dumps(command) + "\r")
-        time.sleep(1)
+        time.sleep(.01)
 
     command = {"command": "stop"}
     device.write(json.dumps(command) + "\r")

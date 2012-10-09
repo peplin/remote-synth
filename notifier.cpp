@@ -7,7 +7,7 @@ String inputBuffer;
 void setup() {
     Serial.begin(115200);
     pinMode(PWM_PIN,OUTPUT);
-    // audioOn();
+    audioOn();
 }
 
 void updateSynthControls(int newSyncPhaseInc, int newGrainPhaseInc,
@@ -29,32 +29,20 @@ void loop() {
         char message[endOfMessage + 1];
         inputBuffer.substring(0, endOfMessage).toCharArray(message,
                 sizeof(message));
-        Serial.print("Chars are: ");
-        for(int i = 0; i < sizeof(message); i++) {
-            Serial.println(message[i], HEX);
-        }
 
         cJSON* root = cJSON_Parse(message);
-        Serial.println("a");
         if(root != NULL) {
-            Serial.println("b");
             cJSON* commandObj = cJSON_GetObjectItem(root, "command");
-            Serial.println("c");
             if(commandObj != NULL) {
                 char* command = commandObj->valuestring;
                 if(!strcmp(command, "play")) {
                     cJSON* options = cJSON_GetObjectItem(root, "options");
                     if(options != NULL) {
                         int newSyncPhaseInc = cJSON_GetArrayItem(options, 0)->valueint;
-                        Serial.println("1");
                         int newGrainPhaseInc = cJSON_GetArrayItem(options, 1)->valueint;
-                        Serial.println("2");
                         int newGrainDecay = cJSON_GetArrayItem(options, 2)->valueint;
-                        Serial.println("3");
                         int newGrain2PhaseInc = cJSON_GetArrayItem(options, 3)->valueint;
-                        Serial.println("4");
                         int newGrain2Decay = cJSON_GetArrayItem(options, 4)->valueint;
-                        Serial.println("5");
                         updateSynthControls(newSyncPhaseInc, newGrainPhaseInc,
                                 newGrainDecay, newGrain2PhaseInc, newGrain2Decay);
                     }
